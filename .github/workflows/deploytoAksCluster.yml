@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: containerregistrypruegacdonado.azurecr.io
+        username: ${{ secrets.acr_containerregistrypruegacdonado_username }}
+        password: ${{ secrets.acr_containerregistrypruegacdonado_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t containerregistrypruegacdonado.azurecr.io/akslearningcdonado:${{ github.sha }} --label dockerfile-path=Dockerfile
+        docker push containerregistrypruegacdonado.azurecr.io/akslearningcdonado:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_akslearningcdonado_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep akslearningcdonadoaf1f | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace akslearningcdonadoaf1f`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: akslearningcdonadoaf1f
+        container-registry-url: containerregistrypruegacdonado.azurecr.io
+        container-registry-username: ${{ secrets.acr_containerregistrypruegacdonado_username }}
+        container-registry-password: ${{ secrets.acr_containerregistrypruegacdonado_password }}
+        secret-name: akslearningcdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: akslearningcdonadoaf1f
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          containerregistrypruegacdonado.azurecr.io/akslearningcdonado:${{ github.sha }}
+        imagepullsecrets: |
+          akslearningcdockerauth
