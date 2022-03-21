@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.exceptions import HTTPException
+from azure.identity import DefaultAzureCredential
 from datetime import datetime
 
 app = FastAPI()
@@ -13,10 +15,13 @@ async def root():
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
+
 @app.get('/today')
 async def get_today():
     return datetime.now()
 
-@app.get('/today2')
+
+@app.get('/credential')
 async def get_today():
-    return datetime.now()
+    credential = DefaultAzureCredential()
+    return 'success'
