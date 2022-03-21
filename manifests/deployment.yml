@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "akslearningcdonado-7d59"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "akslearningcdonado-7d59"
+  template:
+    metadata:
+      labels:
+        app: "akslearningcdonado-7d59"
+    spec:
+      containers:
+        - name: "akslearningcdonado-7d59"
+          image: "containerregistrypruegacdonado.azurecr.io/akslearningcdonado"
+          ports:
+          - containerPort: 8080
