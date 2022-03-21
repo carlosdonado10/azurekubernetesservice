@@ -16,3 +16,7 @@ async def say_hello(name: str):
 @app.get('/today')
 async def get_today():
     return datetime.now()
+
+@app.get('/today2')
+async def get_today():
+    return datetime.now()
